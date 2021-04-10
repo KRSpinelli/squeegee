@@ -15,9 +15,11 @@
 # outbound/inbound connections
 
 # firewall?
-import psutil
+import psutil, socket
 
-print("""
+f = open("network_enum.txt", "w+")
+
+f.write("""
 .__   __.  _______ .___________.____    __    ____  ______   .______       __  ___     _______ .__   __.  __    __  .___  ___. 
 |  \ |  | |   ____||           |\   \  /  \  /   / /  __  \  |   _  \     |  |/  /    |   ____||  \ |  | |  |  |  | |   \/   | 
 |   \|  | |  |__   `---|  |----` \   \/    \/   / |  |  |  | |  |_)  |    |  '  /     |  |__   |   \|  | |  |  |  | |  \  /  | 
@@ -30,24 +32,24 @@ print("""
 
     """)
 
-print("LIST OF INTERFACES // IP ADDRS")
+f.write("LIST OF INTERFACES // IP ADDRS")
 
 addrs = psutil.net_if_addrs()
 
 # List interfaces and the network information associated with them
 
 for gen in addrs.keys():
-    print("\n==============================")
-    print(gen)
-    print("==============================")
+    f.write("\n==============================\n")
+    f.write(gen + '\n')
+    f.write("==============================\n")
     
     for addr in addrs[gen]:
-        if addr.family == "AddressFamily.AF_LINK":
-            print("MAC Address: %s" % addr.address)
+        if addr.family == psutil.AF_LINK:
+            f.write(f"MAC Address: {addr.address}\n")
 
-        elif addr.family == "AddressFamily.AF_INET":
-            print("IPv4 Address: %s" % addr.address)
-            print("netmask: %s" % addr.netmask)
+        elif addr.family == socket.AF_INET:
+            f.write(f"IPv4 Address: {addr.address}\n")
+            f.write(f"netmask: {addr.netmask}\n")
 
-        elif addr.family == "AddressFamily>AF_INET6":
-            print("IPv6 Address: %s" % addr.address)
+        elif addr.family == socket.AF_INET6:
+            f.write(f"IPv6 Address: {addr.address}\n")
