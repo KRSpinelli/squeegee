@@ -1,21 +1,19 @@
-import os, platform, psutil, wmi
+import os, platform, psutil, wmi, subprocess
 
 c = wmi.WMI()   
 my_system = c.Win32_ComputerSystem()[0]
 
 f = open("userHardware.txt", "w+")
 
-f.write(f"System: {platform.system()}\n\
-Node: {platform.node()}\n\
-Release: {platform.release()}\n\
-Version: {platform.version()}\n\
-Machine: {platform.machine()}\n\
-Processor: {platform.processor()}\n")
+# traverse the info
+Id = subprocess.check_output(['systeminfo']).decode('utf-8').split('\n')
+new = []
 
-f.write(f"\nManufacturer: {my_system.Manufacturer}\n\
-Model: {my_system.Model}\n\
-Name: {my_system.Name}\n\
-NumberOfProcessors: {my_system.NumberOfProcessors}\n\
-SystemType: {my_system.SystemType}\n\
-SystemFamily: {my_system.SystemFamily}\n")
+# arrange the string into clear info
+for item in Id:
+	new.append(str(item.split("\r")[:-1]))
+for i in new:
+	f.write(f"{(i[2:-2])}\n")
 
+f.write(f"Disk Partitions: {psutil.disk_partitions()}\n\n\
+NIC: {psutil.net_if_stats()}")
