@@ -15,5 +15,7 @@ for item in Id:
 for i in new:
 	f.write(f"{(i[2:-2])}\n")
 
-f.write(f"Disk Partitions: {psutil.disk_partitions()}\n\n\
-NIC: {psutil.net_if_stats()}")
+
+gpu = subprocess.Popen(['wmic','path','win32_VideoController','get','name'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
+f.write(f"GPU:                       {gpu[4:].strip()}")
+
