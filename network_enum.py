@@ -15,7 +15,7 @@
 # outbound/inbound connections
 
 # firewall?
-import psutil, socket
+import psutil, socket, subprocess
 
 f = open("network_enum.txt", "w+")
 
@@ -32,24 +32,70 @@ f.write("""
 
     """)
 
-f.write("LIST OF INTERFACES // IP ADDRS")
-
 addrs = psutil.net_if_addrs()
 
 # List interfaces and the network information associated with them
 
-for gen in addrs.keys():
-    f.write("\n==============================\n")
-    f.write(gen + '\n')
-    f.write("==============================\n")
+# for gen in addrs.keys():
+#     f.write("\n==============================\n")
+#     f.write(gen + '\n')
+#     f.write("==============================\n")
     
-    for addr in addrs[gen]:
-        if addr.family == psutil.AF_LINK:
-            f.write(f"MAC Address: {addr.address}\n")
+#     for addr in addrs[gen]:
+#         if addr.family == psutil.AF_LINK:
+#             f.write(f"MAC Address: {addr.address}\n")
 
-        elif addr.family == socket.AF_INET:
-            f.write(f"IPv4 Address: {addr.address}\n")
-            f.write(f"netmask: {addr.netmask}\n")
+#         elif addr.family == socket.AF_INET:
+#             f.write(f"IPv4 Address: {addr.address}\n")
+#             f.write(f"netmask: {addr.netmask}\n")
 
-        elif addr.family == socket.AF_INET6:
-            f.write(f"IPv6 Address: {addr.address}\n")
+#         elif addr.family == socket.AF_INET6:
+#             f.write(f"IPv6 Address: {addr.address}\n")
+
+ipinfo=subprocess.Popen(['ipconfig'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
+
+for line in ipinfo.split('\n'):
+    f.write(line.strip()+'\n')
+
+
+wifi=subprocess.Popen('netsh WLAN show profile FiOS-3PTPF key=clear'.split(), stdout=subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
+
+for line in wifi.split('\n'):
+    f.write(line.strip()+'\n')
+
+# f.write(ipinfo)
+
+conns = psutil.net_connections()
+
+t = {}
+
+def getTransportProto(proto):
+    if proto == socket.SOCK_STREAM:
+        return "TCP"
+    elif proto == socket.SOCK_DGRAM:
+        return "UDP"
+    else:
+        return "Unknown"
+
+for conn in conns:
+    if conn.raddr:
+        t[str(conn.pid)]=[getTransportProto(conn.type), f"{conn.laddr.ip}:{conn.laddr.port}", f"{conn.raddr.ip}:{conn.raddr.port}"]
+    else:
+        t[str(conn.pid)]=[getTransportProto(conn.type), f"{conn.laddr.ip}:{conn.laddr.port}"]
+
+f.write("| {:<8} | {:<15} | {:<35} | {:<25} |".format("PID", "ConnType", "Local", "Remote"))
+
+f.write("\n|==========|=================|=====================================|===========================|\n")
+
+for k, v in t.items():
+    if len(v) == 3:
+        ty, local, remote = v
+    else:
+        ty, local = v
+        remote = ' '
+
+    f.write("| {:<8} | {:<15} | {:<35} | {:<25} |".format(k, ty, local, remote))
+    f.write("\n")
+
+
+
