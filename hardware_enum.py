@@ -1,4 +1,4 @@
-import os, platform, psutil, wmi, subprocess
+import os, platform, psutil, subprocess
 
 f = open("userHardware.txt", "w+")
 
@@ -16,8 +16,6 @@ f.write("""
                                                                                                                                                """)
                                                                                                                                                
 
-c = wmi.WMI()   
-my_system = c.Win32_ComputerSystem()[0]
 
 devicesFile = open("userDevices.txt","+w")
 
@@ -34,12 +32,30 @@ for i in new:
 serialNum = subprocess.Popen(['wmic','BIOS','get','SERIALNUMBER'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
 gpu = subprocess.Popen(['wmic','path','win32_VideoController','get','name'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
 
+
+
 #Slower run time with filters vvvv
 #devices = subprocess.Popen(['powershell','-command','Get-PnpDevice | Sort-Object -Property Name | Where Class -NotLike "Volume" | Where Class -NotLike "System" | ft Class, Name'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
 
 devices = subprocess.Popen(['powershell','-command','Get-PnpDevice'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
 f.write(f"GPU:                       {gpu[4:].strip()}\n\
 Serial:                    {serialNum[12:].strip()}")
+
+diskSpace = psutil.disk_usage("/")
+
+def bytes2GB(x):
+    x = x//(1024**3)
+    x = int(x)
+    return x
+
+
+f.write(f"\nDisk Storage:\n\
+                           Total: {bytes2GB(diskSpace[0])} GB\n\
+                           Used: {bytes2GB(diskSpace[0]) - bytes2GB(diskSpace[2])} GB\n\
+                           Available: {bytes2GB(diskSpace[2])} GB")
+
+partit = psutil.disk_partitions()                           
+f.write(f"\nDisk Partition: {partit}")
 
 devicesFile.write("""
 =============================================================================================================
