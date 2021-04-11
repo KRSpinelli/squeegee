@@ -15,7 +15,17 @@ for item in Id:
 for i in new:
 	f.write(f"{(i[2:-2])}\n")
 
-
+serialNum = subprocess.Popen(['wmic','BIOS','get','SERIALNUMBER'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
 gpu = subprocess.Popen(['wmic','path','win32_VideoController','get','name'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
-f.write(f"GPU:                       {gpu[4:].strip()}")
+
+#Slower run time with filters vvvv
+#devices = subprocess.Popen(['powershell','-command','Get-PnpDevice | Sort-Object -Property Name | Where Class -NotLike "Volume" | Where Class -NotLike "System" | ft Class, Name'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
+
+devices = subprocess.Popen(['powershell','-command','Get-PnpDevice'], stdout = subprocess.PIPE, shell=True).communicate()[0].decode('utf-8')
+f.write(f"GPU:                       {gpu[4:].strip()}\n\
+Serial:                    {serialNum[12:].strip()}")
+
+f.write(f"{devices}")
+
+
 
